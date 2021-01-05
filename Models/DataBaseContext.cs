@@ -9,6 +9,7 @@ namespace api_financial_control.Models
 {
     public class DataBaseContext:DbContext
     {
+        public DbSet<System_structure> System_Structures { get; set; }
         public DbSet<Address> Addresses { get; set; }
         public DbSet<Application> Applications { get; set; }
         public DbSet<Company> Companies { get; set; }

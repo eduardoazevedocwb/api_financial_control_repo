@@ -8,9 +8,11 @@ namespace api_financial_control.Controllers
 {
     public class HomeController : Controller
     {
-        public void Index()
+        public ActionResult Index()
         {
-            ViewBag.Title = "Home Page";
+            ViewBag.Title = "API FINANCIAL CONTROL";
+
+            return View();
         }
     }
 }

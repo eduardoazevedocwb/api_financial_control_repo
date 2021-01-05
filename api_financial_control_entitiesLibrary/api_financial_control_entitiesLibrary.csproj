@@ -47,6 +47,7 @@
     <Compile Include="Contact.cs" />
     <Compile Include="Cost_center.cs" />
     <Compile Include="Department.cs" />
+    <Compile Include="System_structure.cs" />
     <Compile Include="Entity_base.cs" />
     <Compile Include="Login.cs" />
     <Compile Include="Person.cs" />
