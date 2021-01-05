@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace api_financial_control_entitiesLibrary
 {
-    class Secret_question : Entity_base
+    public class Secret_question : Entity_base
     {
         public string Description { get; set; }
     }

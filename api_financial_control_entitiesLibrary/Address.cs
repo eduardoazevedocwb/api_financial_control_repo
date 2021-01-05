@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace api_financial_control_entitiesLibrary
 {
-    class Address : Entity_base
+    public class Address : Entity_base
     {
         public string Street { get; set; }
         public int Number { get; set; }

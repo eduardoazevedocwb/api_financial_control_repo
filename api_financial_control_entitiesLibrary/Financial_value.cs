@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace api_financial_control_entitiesLibrary
 {
-    class Financial_value : Entity_base
+    public class Financial_value : Entity_base
     {
         public int ID_Financial_structure { get; set; }
         public int MyProperty { get; set; }
