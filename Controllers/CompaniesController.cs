@@ -1,119 +1,96 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
-using api_financial_control.Models;
 using api_financial_control_entitiesLibrary;
+using Microsoft.AspNetCore.Cors;
 
 namespace api_financial_control.Controllers
 {
     public class CompaniesController : ApiController
     {
-        private DataBaseContext db = new DataBaseContext();
+        private DataBaseConnection.DataBaseConnection db = new DataBaseConnection.DataBaseConnection();
 
-        // GET: api/Companies
-        public IQueryable<Company> GetCompanies()
+        // GET: api/Company
+        [EnableCors("AllowSpecificOrigin")]
+        public IQueryable<Company> GetCompany()
         {
-            return db.Companies;
+            var list = db.Get("Company");
+            return list.Cast<Company>().AsQueryable();
         }
 
-        // GET: api/Companies/5
+        // GET: api/Company/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Company))]
         public IHttpActionResult GetCompany(int id)
         {
-            Company company = db.Companies.Find(id);
-            if (company == null)
-            {
+            Company Company;
+            var obj = db.GetById("Company", id);
+            if (obj != null)
+                Company = (Company)obj;
+            else
                 return NotFound();
-            }
 
-            return Ok(company);
+            return Ok(Company);
         }
 
-        // PUT: api/Companies/5
+        // PUT: api/Company/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(void))]
-        public IHttpActionResult PutCompany(int id, Company company)
+        public IHttpActionResult PutCompany(int id, Company Company)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != company.ID)
+            if (id != Company.ID)
             {
                 return BadRequest();
             }
 
-            db.Entry(company).State = EntityState.Modified;
-
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CompanyExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            var res = db.SetItem("Company", Company.ID, Entities_Functions.GetInsertString(Company));
 
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        // POST: api/Companies
+        // POST: api/Company
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Company))]
-        public IHttpActionResult PostCompany(Company company)
+        public IHttpActionResult PostCompany(Company Company)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
-            }
+            } 
 
-            db.Companies.Add(company);
-            db.SaveChanges();
+            var res = db.SetItem("Company", Company.ID, Entities_Functions.GetInsertString(Company));
 
-            return CreatedAtRoute("DefaultApi", new { id = company.ID }, company);
+            return CreatedAtRoute("DefaultApi", new { id = Company.ID }, Company);
         }
 
-        // DELETE: api/Companies/5
+        // DELETE: api/Company/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Company))]
         public IHttpActionResult DeleteCompany(int id)
         {
-            Company company = db.Companies.Find(id);
-            if (company == null)
+            Company Company = (Company)db.GetById("Company", id);
+            if (Company == null)
             {
                 return NotFound();
             }
+            var res = db.Inative("Company", id);
 
-            db.Companies.Remove(company);
-            db.SaveChanges();
-
-            return Ok(company);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
+            return Ok(Company);
         }
 
         private bool CompanyExists(int id)
         {
-            return db.Companies.Count(e => e.ID == id) > 0;
+            return db.ContainsId("Company", id);
         }
     }
 }

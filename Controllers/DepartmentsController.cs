@@ -1,119 +1,96 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
-using api_financial_control.Models;
 using api_financial_control_entitiesLibrary;
+using Microsoft.AspNetCore.Cors;
 
 namespace api_financial_control.Controllers
 {
     public class DepartmentsController : ApiController
     {
-        private DataBaseContext db = new DataBaseContext();
+        private DataBaseConnection.DataBaseConnection db = new DataBaseConnection.DataBaseConnection();
 
-        // GET: api/Departments
-        public IQueryable<Department> GetDepartments()
+        // GET: api/Department
+        [EnableCors("AllowSpecificOrigin")]
+        public IQueryable<Department> GetDepartment()
         {
-            return db.Departments;
+            var list = db.Get("Department");
+            return list.Cast<Department>().AsQueryable();
         }
 
-        // GET: api/Departments/5
+        // GET: api/Department/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Department))]
         public IHttpActionResult GetDepartment(int id)
         {
-            Department department = db.Departments.Find(id);
-            if (department == null)
-            {
+            Department Department;
+            var obj = db.GetById("Department", id);
+            if (obj != null)
+                Department = (Department)obj;
+            else
                 return NotFound();
-            }
 
-            return Ok(department);
+            return Ok(Department);
         }
 
-        // PUT: api/Departments/5
+        // PUT: api/Department/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(void))]
-        public IHttpActionResult PutDepartment(int id, Department department)
+        public IHttpActionResult PutDepartment(int id, Department Department)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != department.ID)
+            if (id != Department.ID)
             {
                 return BadRequest();
             }
 
-            db.Entry(department).State = EntityState.Modified;
-
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!DepartmentExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            var res = db.SetItem("Department", Department.ID, Entities_Functions.GetInsertString(Department));
 
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        // POST: api/Departments
+        // POST: api/Department
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Department))]
-        public IHttpActionResult PostDepartment(Department department)
+        public IHttpActionResult PostDepartment(Department Department)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            db.Departments.Add(department);
-            db.SaveChanges();
+            var res = db.SetItem("Department", Department.ID,Entities_Functions.GetInsertString(Department));
 
-            return CreatedAtRoute("DefaultApi", new { id = department.ID }, department);
+            return CreatedAtRoute("DefaultApi", new { id = Department.ID }, Department);
         }
 
-        // DELETE: api/Departments/5
+        // DELETE: api/Department/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Department))]
         public IHttpActionResult DeleteDepartment(int id)
         {
-            Department department = db.Departments.Find(id);
-            if (department == null)
+            Department Department = (Department)db.GetById("Department", id);
+            if (Department == null)
             {
                 return NotFound();
             }
+            var res = db.Inative("Department", id);
 
-            db.Departments.Remove(department);
-            db.SaveChanges();
-
-            return Ok(department);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
+            return Ok(Department);
         }
 
         private bool DepartmentExists(int id)
         {
-            return db.Departments.Count(e => e.ID == id) > 0;
+            return db.ContainsId("Department", id);
         }
     }
 }

@@ -1,119 +1,96 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
-using api_financial_control.Models;
 using api_financial_control_entitiesLibrary;
+using Microsoft.AspNetCore.Cors;
 
 namespace api_financial_control.Controllers
 {
     public class Financial_valueController : ApiController
     {
-        private DataBaseContext db = new DataBaseContext();
+        private DataBaseConnection.DataBaseConnection db = new DataBaseConnection.DataBaseConnection();
 
         // GET: api/Financial_value
-        public IQueryable<Financial_value> GetFinancial_Values()
+        [EnableCors("AllowSpecificOrigin")]
+        public IQueryable<Financial_value> GetFinancial_value()
         {
-            return db.Financial_Values;
+            var list = db.Get("Financial_value");
+            return list.Cast<Financial_value>().AsQueryable();
         }
 
         // GET: api/Financial_value/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Financial_value))]
         public IHttpActionResult GetFinancial_value(int id)
         {
-            Financial_value financial_value = db.Financial_Values.Find(id);
-            if (financial_value == null)
-            {
+            Financial_value Financial_value;
+            var obj = db.GetById("Financial_value", id);
+            if (obj != null)
+                Financial_value = (Financial_value)obj;
+            else
                 return NotFound();
-            }
 
-            return Ok(financial_value);
+            return Ok(Financial_value);
         }
 
         // PUT: api/Financial_value/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(void))]
-        public IHttpActionResult PutFinancial_value(int id, Financial_value financial_value)
+        public IHttpActionResult PutFinancial_value(int id, Financial_value Financial_value)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != financial_value.ID)
+            if (id != Financial_value.ID)
             {
                 return BadRequest();
             }
 
-            db.Entry(financial_value).State = EntityState.Modified;
-
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!Financial_valueExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            var res = db.SetItem("Financial_value", Financial_value.ID,Entities_Functions.GetInsertString(Financial_value));
 
             return StatusCode(HttpStatusCode.NoContent);
         }
 
         // POST: api/Financial_value
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Financial_value))]
-        public IHttpActionResult PostFinancial_value(Financial_value financial_value)
+        public IHttpActionResult PostFinancial_value(Financial_value Financial_value)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            db.Financial_Values.Add(financial_value);
-            db.SaveChanges();
+            var res = db.SetItem("Financial_value", Financial_value.ID, Entities_Functions.GetInsertString(Financial_value));
 
-            return CreatedAtRoute("DefaultApi", new { id = financial_value.ID }, financial_value);
+            return CreatedAtRoute("DefaultApi", new { id = Financial_value.ID }, Financial_value);
         }
 
         // DELETE: api/Financial_value/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Financial_value))]
         public IHttpActionResult DeleteFinancial_value(int id)
         {
-            Financial_value financial_value = db.Financial_Values.Find(id);
-            if (financial_value == null)
+            Financial_value Financial_value = (Financial_value)db.GetById("Financial_value", id);
+            if (Financial_value == null)
             {
                 return NotFound();
             }
+            var res = db.Inative("Financial_value", id);
 
-            db.Financial_Values.Remove(financial_value);
-            db.SaveChanges();
-
-            return Ok(financial_value);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
+            return Ok(Financial_value);
         }
 
         private bool Financial_valueExists(int id)
         {
-            return db.Financial_Values.Count(e => e.ID == id) > 0;
+            return db.ContainsId("Financial_value", id);
         }
     }
 }

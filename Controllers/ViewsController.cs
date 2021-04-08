@@ -1,119 +1,96 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
-using api_financial_control.Models;
 using api_financial_control_entitiesLibrary;
+using Microsoft.AspNetCore.Cors;
 
 namespace api_financial_control.Controllers
 {
     public class ViewsController : ApiController
     {
-        private DataBaseContext db = new DataBaseContext();
+        private DataBaseConnection.DataBaseConnection db = new DataBaseConnection.DataBaseConnection();
 
-        // GET: api/Views
-        public IQueryable<View> GetViews()
+        // GET: api/View
+        [EnableCors("AllowSpecificOrigin")]
+        public IQueryable<View> GetView()
         {
-            return db.Views;
+            var list = db.Get("[View]");
+            return list.Cast<View>().AsQueryable();
         }
 
-        // GET: api/Views/5
+        // GET: api/View/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(View))]
         public IHttpActionResult GetView(int id)
         {
-            View view = db.Views.Find(id);
-            if (view == null)
-            {
+            View View;
+            var obj = db.GetById("[View]", id);
+            if (obj != null)
+                View = (View)obj;
+            else
                 return NotFound();
-            }
 
-            return Ok(view);
+            return Ok(View);
         }
 
-        // PUT: api/Views/5
+        // PUT: api/View/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(void))]
-        public IHttpActionResult PutView(int id, View view)
+        public IHttpActionResult PutView(int id, View View)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != view.ID)
+            if (id != View.ID)
             {
                 return BadRequest();
             }
 
-            db.Entry(view).State = EntityState.Modified;
-
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ViewExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            var res = db.SetItem("[View]", View.ID, Entities_Functions.GetInsertString(View));
 
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        // POST: api/Views
+        // POST: api/View
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(View))]
-        public IHttpActionResult PostView(View view)
+        public IHttpActionResult PostView(View View)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            db.Views.Add(view);
-            db.SaveChanges();
+            var res = db.SetItem("[View]", View.ID, Entities_Functions.GetInsertString(View));
 
-            return CreatedAtRoute("DefaultApi", new { id = view.ID }, view);
+            return CreatedAtRoute("DefaultApi", new { id = View.ID }, View);
         }
 
-        // DELETE: api/Views/5
+        // DELETE: api/View/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(View))]
         public IHttpActionResult DeleteView(int id)
         {
-            View view = db.Views.Find(id);
-            if (view == null)
+            View View = (View)db.GetById("[View]", id);
+            if (View == null)
             {
                 return NotFound();
             }
+            var res = db.Inative("[View]", id);
 
-            db.Views.Remove(view);
-            db.SaveChanges();
-
-            return Ok(view);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
+            return Ok(View);
         }
 
         private bool ViewExists(int id)
         {
-            return db.Views.Count(e => e.ID == id) > 0;
+            return db.ContainsId("[View]", id);
         }
     }
 }

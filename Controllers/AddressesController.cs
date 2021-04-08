@@ -1,42 +1,47 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
-using api_financial_control.Models;
 using api_financial_control_entitiesLibrary;
+using DataBaseConnection;
+using Microsoft.AspNetCore.Cors;
 
 namespace api_financial_control.Controllers
 {
     public class AddressesController : ApiController
     {
-        private DataBaseContext db = new DataBaseContext();
+        private DataBaseConnection.DataBaseConnection db = new DataBaseConnection.DataBaseConnection();
 
         // GET: api/Addresses
+        [EnableCors("AllowSpecificOrigin")]
         public IQueryable<Address> GetAddresses()
         {
-            return db.Addresses;
+            var list = db.Get("Address");
+            return list.Cast<Address>().AsQueryable();
         }
 
         // GET: api/Addresses/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Address))]
         public IHttpActionResult GetAddress(int id)
         {
-            Address address = db.Addresses.Find(id);
-            if (address == null)
-            {
+            Address Address;
+            var obj = db.GetById("Address", id);
+            if (obj != null)
+                Address = (Address)obj;
+            else
                 return NotFound();
-            }
 
-            return Ok(address);
+            return Ok(Address);
         }
 
         // PUT: api/Addresses/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(void))]
         public IHttpActionResult PutAddress(int id, Address address)
         {
@@ -50,28 +55,13 @@ namespace api_financial_control.Controllers
                 return BadRequest();
             }
 
-            db.Entry(address).State = EntityState.Modified;
-
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!AddressExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            var res = db.SetItem("Address", address.ID, Entities_Functions.GetInsertString(address));
 
             return StatusCode(HttpStatusCode.NoContent);
         }
 
         // POST: api/Addresses
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Address))]
         public IHttpActionResult PostAddress(Address address)
         {
@@ -80,40 +70,29 @@ namespace api_financial_control.Controllers
                 return BadRequest(ModelState);
             }
 
-            db.Addresses.Add(address);
-            db.SaveChanges();
+            var res = db.SetItem("Address",address.ID, Entities_Functions.GetInsertString(address));
 
             return CreatedAtRoute("DefaultApi", new { id = address.ID }, address);
         }
 
         // DELETE: api/Addresses/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Address))]
         public IHttpActionResult DeleteAddress(int id)
         {
-            Address address = db.Addresses.Find(id);
+            Address address = (Address)db.GetById("Address",id);
             if (address == null)
             {
                 return NotFound();
             }
-
-            db.Addresses.Remove(address);
-            db.SaveChanges();
+            var res = db.Inative("Address", id);
 
             return Ok(address);
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
         private bool AddressExists(int id)
         {
-            return db.Addresses.Count(e => e.ID == id) > 0;
+            return db.ContainsId("Address", id);
         }
     }
 }

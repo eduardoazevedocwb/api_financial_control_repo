@@ -1,119 +1,97 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
-using api_financial_control.Models;
 using api_financial_control_entitiesLibrary;
+using Microsoft.AspNetCore.Cors;
 
 namespace api_financial_control.Controllers
 {
     public class ApplicationsController : ApiController
     {
-        private DataBaseContext db = new DataBaseContext();
+        private DataBaseConnection.DataBaseConnection db = new DataBaseConnection.DataBaseConnection();
 
-        // GET: api/Applications
-        public IQueryable<Application> GetApplications()
+        // GET: api/Application
+        [EnableCors("AllowSpecificOrigin")]
+        public IQueryable<Application> GetApplication()
         {
-            return db.Applications;
+            var list = db.Get("Application");
+            return list.Cast<Application>().AsQueryable();
         }
 
-        // GET: api/Applications/5
+        // GET: api/Application/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Application))]
         public IHttpActionResult GetApplication(int id)
         {
-            Application application = db.Applications.Find(id);
-            if (application == null)
-            {
+            Application Application;
+            var obj = db.GetById("Application", id);
+            if (obj != null)
+                Application = (Application)obj;
+            else
                 return NotFound();
-            }
 
-            return Ok(application);
+            return Ok(Application);
+
         }
 
-        // PUT: api/Applications/5
+        // PUT: api/Application/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(void))]
-        public IHttpActionResult PutApplication(int id, Application application)
+        public IHttpActionResult PutApplication(int id, Application Application)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != application.ID)
+            if (id != Application.ID)
             {
                 return BadRequest();
             }
 
-            db.Entry(application).State = EntityState.Modified;
-
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ApplicationExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            var res = db.SetItem("Application",Application.ID, Entities_Functions.GetInsertString(Application));
 
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        // POST: api/Applications
+        // POST: api/Application
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Application))]
-        public IHttpActionResult PostApplication(Application application)
+        public IHttpActionResult PostApplication(Application Application)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            db.Applications.Add(application);
-            db.SaveChanges();
+            var res = db.SetItem("Application", Application.ID, Entities_Functions.GetInsertString(Application));
 
-            return CreatedAtRoute("DefaultApi", new { id = application.ID }, application);
+            return CreatedAtRoute("DefaultApi", new { id = Application.ID }, Application);
         }
 
-        // DELETE: api/Applications/5
+        // DELETE: api/Application/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Application))]
         public IHttpActionResult DeleteApplication(int id)
         {
-            Application application = db.Applications.Find(id);
-            if (application == null)
+            Application Application = (Application)db.GetById("Application", id);
+            if (Application == null)
             {
                 return NotFound();
             }
+            var res = db.Inative("Application", id);
 
-            db.Applications.Remove(application);
-            db.SaveChanges();
-
-            return Ok(application);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
+            return Ok(Application);
         }
 
         private bool ApplicationExists(int id)
         {
-            return db.Applications.Count(e => e.ID == id) > 0;
+            return db.ContainsId("Application", id);
         }
     }
 }

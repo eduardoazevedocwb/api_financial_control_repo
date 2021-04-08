@@ -1,119 +1,96 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
-using api_financial_control.Models;
 using api_financial_control_entitiesLibrary;
+using Microsoft.AspNetCore.Cors;
 
 namespace api_financial_control.Controllers
 {
     public class System_structureController : ApiController
     {
-        private DataBaseContext db = new DataBaseContext();
+        private DataBaseConnection.DataBaseConnection db = new DataBaseConnection.DataBaseConnection();
 
         // GET: api/System_structure
-        public IQueryable<System_structure> GetSystem_Structures()
+        [EnableCors("AllowSpecificOrigin")]
+        public IQueryable<System_structure> GetSystem_structure()
         {
-            return db.System_Structures;
+            var list = db.Get("System_structure");
+            return list.Cast<System_structure>().AsQueryable();
         }
 
         // GET: api/System_structure/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(System_structure))]
         public IHttpActionResult GetSystem_structure(int id)
         {
-            System_structure system_structure = db.System_Structures.Find(id);
-            if (system_structure == null)
-            {
+            System_structure System_structure;
+            var obj = db.GetById("System_structure", id);
+            if (obj != null)
+                System_structure = (System_structure)obj;
+            else
                 return NotFound();
-            }
 
-            return Ok(system_structure);
+            return Ok(System_structure);
         }
 
         // PUT: api/System_structure/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(void))]
-        public IHttpActionResult PutSystem_structure(int id, System_structure system_structure)
+        public IHttpActionResult PutSystem_structure(int id, System_structure System_structure)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != system_structure.ID)
+            if (id != System_structure.ID)
             {
                 return BadRequest();
             }
 
-            db.Entry(system_structure).State = EntityState.Modified;
-
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!System_structureExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            var res = db.SetItem("System_structure", System_structure.ID, Entities_Functions.GetInsertString(System_structure));
 
             return StatusCode(HttpStatusCode.NoContent);
         }
 
         // POST: api/System_structure
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(System_structure))]
-        public IHttpActionResult PostSystem_structure(System_structure system_structure)
+        public IHttpActionResult PostSystem_structure(System_structure System_structure)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            db.System_Structures.Add(system_structure);
-            db.SaveChanges();
+            var res = db.SetItem("System_structure", System_structure.ID, Entities_Functions.GetInsertString(System_structure));
 
-            return CreatedAtRoute("DefaultApi", new { id = system_structure.ID }, system_structure);
+            return CreatedAtRoute("DefaultApi", new { id = System_structure.ID }, System_structure);
         }
 
         // DELETE: api/System_structure/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(System_structure))]
         public IHttpActionResult DeleteSystem_structure(int id)
         {
-            System_structure system_structure = db.System_Structures.Find(id);
-            if (system_structure == null)
+            System_structure System_structure = (System_structure)db.GetById("System_structure", id);
+            if (System_structure == null)
             {
                 return NotFound();
             }
+            var res = db.Inative("System_structure", id);
 
-            db.System_Structures.Remove(system_structure);
-            db.SaveChanges();
-
-            return Ok(system_structure);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
+            return Ok(System_structure);
         }
 
         private bool System_structureExists(int id)
         {
-            return db.System_Structures.Count(e => e.ID == id) > 0;
+            return db.ContainsId("System_structure", id);
         }
     }
 }

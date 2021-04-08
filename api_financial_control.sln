@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "api_financial_control", "ap
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "api_financial_control_entitiesLibrary", "api_financial_control_entitiesLibrary\api_financial_control_entitiesLibrary.csproj", "{697B5EBE-EBCA-48EC-B539-73515A37E108}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataBaseConnection", "api_financial_control_dbConnection\api_financial_control_dbConnection\DataBaseConnection.csproj", "{F2B7B064-F51E-4574-AC3D-D5B638A2A552}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{697B5EBE-EBCA-48EC-B539-73515A37E108}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{697B5EBE-EBCA-48EC-B539-73515A37E108}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{697B5EBE-EBCA-48EC-B539-73515A37E108}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2B7B064-F51E-4574-AC3D-D5B638A2A552}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2B7B064-F51E-4574-AC3D-D5B638A2A552}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2B7B064-F51E-4574-AC3D-D5B638A2A552}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2B7B064-F51E-4574-AC3D-D5B638A2A552}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

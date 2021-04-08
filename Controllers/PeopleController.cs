@@ -1,119 +1,96 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
-using api_financial_control.Models;
 using api_financial_control_entitiesLibrary;
+using Microsoft.AspNetCore.Cors;
 
 namespace api_financial_control.Controllers
 {
     public class PeopleController : ApiController
     {
-        private DataBaseContext db = new DataBaseContext();
+        private DataBaseConnection.DataBaseConnection db = new DataBaseConnection.DataBaseConnection();
 
-        // GET: api/People
-        public IQueryable<Person> GetPeople()
+        // GET: api/Person
+        [EnableCors("AllowSpecificOrigin")]
+        public IQueryable<Person> GetPerson()
         {
-            return db.People;
+            var list = db.Get("Person");
+            return list.Cast<Person>().AsQueryable();
         }
 
-        // GET: api/People/5
+        // GET: api/Person/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Person))]
         public IHttpActionResult GetPerson(int id)
         {
-            Person person = db.People.Find(id);
-            if (person == null)
-            {
+            Person Person;
+            var obj = db.GetById("Person", id);
+            if (obj != null)
+                Person = (Person)obj;
+            else
                 return NotFound();
-            }
 
-            return Ok(person);
+            return Ok(Person);
         }
 
-        // PUT: api/People/5
+        // PUT: api/Person/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(void))]
-        public IHttpActionResult PutPerson(int id, Person person)
+        public IHttpActionResult PutPerson(int id, Person Person)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != person.ID)
+            if (id != Person.ID)
             {
                 return BadRequest();
             }
 
-            db.Entry(person).State = EntityState.Modified;
-
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PersonExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            var res = db.SetItem("Person",Person.ID, Entities_Functions.GetInsertString(Person));
 
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        // POST: api/People
+        // POST: api/Person
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Person))]
-        public IHttpActionResult PostPerson(Person person)
+        public IHttpActionResult PostPerson(Person Person)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            db.People.Add(person);
-            db.SaveChanges();
+            var res = db.SetItem("Person", Person.ID, Entities_Functions.GetInsertString(Person));
 
-            return CreatedAtRoute("DefaultApi", new { id = person.ID }, person);
+            return CreatedAtRoute("DefaultApi", new { id = Person.ID }, Person);
         }
 
-        // DELETE: api/People/5
+        // DELETE: api/Person/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Person))]
         public IHttpActionResult DeletePerson(int id)
         {
-            Person person = db.People.Find(id);
-            if (person == null)
+            Person Person = (Person)db.GetById("Person", id);
+            if (Person == null)
             {
                 return NotFound();
             }
+            var res = db.Inative("Person", id);
 
-            db.People.Remove(person);
-            db.SaveChanges();
-
-            return Ok(person);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
+            return Ok(Person);
         }
 
         private bool PersonExists(int id)
         {
-            return db.People.Count(e => e.ID == id) > 0;
+            return db.ContainsId("Person", id);
         }
     }
 }

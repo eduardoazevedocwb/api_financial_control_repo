@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "mssql1": {
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/bdserver-eduardo/databases/bd_eduardo_azevedo",
+      "type": "mssql.azure",
+      "connectionId": "DataBaseContext",
+      "secretStore": "AzureAppSettings"
+    }
+  }
+}

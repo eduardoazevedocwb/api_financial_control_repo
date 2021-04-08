@@ -1,119 +1,96 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
-using api_financial_control.Models;
 using api_financial_control_entitiesLibrary;
+using Microsoft.AspNetCore.Cors;
 
 namespace api_financial_control.Controllers
 {
     public class Financial_structureController : ApiController
     {
-        private DataBaseContext db = new DataBaseContext();
+        private DataBaseConnection.DataBaseConnection db = new DataBaseConnection.DataBaseConnection();
 
         // GET: api/Financial_structure
-        public IQueryable<Financial_structure> GetFinancial_Structures()
+        [EnableCors("AllowSpecificOrigin")]
+        public IQueryable<Financial_structure> GetFinancial_structure()
         {
-            return db.Financial_Structures;
+            var list = db.Get("Financial_structure");
+            return list.Cast<Financial_structure>().AsQueryable();
         }
 
         // GET: api/Financial_structure/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Financial_structure))]
         public IHttpActionResult GetFinancial_structure(int id)
         {
-            Financial_structure financial_structure = db.Financial_Structures.Find(id);
-            if (financial_structure == null)
-            {
+            Financial_structure Financial_structure;
+            var obj = db.GetById("Financial_structure", id);
+            if (obj != null)
+                Financial_structure = (Financial_structure)obj;
+            else
                 return NotFound();
-            }
 
-            return Ok(financial_structure);
+            return Ok(Financial_structure);
         }
 
         // PUT: api/Financial_structure/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(void))]
-        public IHttpActionResult PutFinancial_structure(int id, Financial_structure financial_structure)
+        public IHttpActionResult PutFinancial_structure(int id, Financial_structure Financial_structure)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != financial_structure.ID)
+            if (id != Financial_structure.ID)
             {
                 return BadRequest();
             }
 
-            db.Entry(financial_structure).State = EntityState.Modified;
-
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!Financial_structureExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            var res = db.SetItem("Financial_structure", Financial_structure.ID, Entities_Functions.GetInsertString(Financial_structure));
 
             return StatusCode(HttpStatusCode.NoContent);
         }
 
         // POST: api/Financial_structure
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Financial_structure))]
-        public IHttpActionResult PostFinancial_structure(Financial_structure financial_structure)
+        public IHttpActionResult PostFinancial_structure(Financial_structure Financial_structure)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            db.Financial_Structures.Add(financial_structure);
-            db.SaveChanges();
+            var res = db.SetItem("Financial_structure", Financial_structure.ID, Entities_Functions.GetInsertString(Financial_structure));
 
-            return CreatedAtRoute("DefaultApi", new { id = financial_structure.ID }, financial_structure);
+            return CreatedAtRoute("DefaultApi", new { id = Financial_structure.ID }, Financial_structure);
         }
 
         // DELETE: api/Financial_structure/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Financial_structure))]
         public IHttpActionResult DeleteFinancial_structure(int id)
         {
-            Financial_structure financial_structure = db.Financial_Structures.Find(id);
-            if (financial_structure == null)
+            Financial_structure Financial_structure = (Financial_structure)db.GetById("Financial_structure", id);
+            if (Financial_structure == null)
             {
                 return NotFound();
             }
+            var res = db.Inative("Financial_structure", id);
 
-            db.Financial_Structures.Remove(financial_structure);
-            db.SaveChanges();
-
-            return Ok(financial_structure);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
+            return Ok(Financial_structure);
         }
 
         private bool Financial_structureExists(int id)
         {
-            return db.Financial_Structures.Count(e => e.ID == id) > 0;
+            return db.ContainsId("Financial_structure", id);
         }
     }
 }

@@ -1,119 +1,96 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
-using api_financial_control.Models;
 using api_financial_control_entitiesLibrary;
+using Microsoft.AspNetCore.Cors;
 
 namespace api_financial_control.Controllers
 {
     public class LoginsController : ApiController
     {
-        private DataBaseContext db = new DataBaseContext();
+        private DataBaseConnection.DataBaseConnection db = new DataBaseConnection.DataBaseConnection();
 
-        // GET: api/Logins
-        public IQueryable<Login> GetLogins()
+        // GET: api/Login
+        [EnableCors("AllowSpecificOrigin")]
+        public IQueryable<Login> GetLogin()
         {
-            return db.Logins;
+            var list = db.Get("Login");
+            return list.Cast<Login>().AsQueryable();
         }
 
-        // GET: api/Logins/5
+        // GET: api/Login/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Login))]
         public IHttpActionResult GetLogin(int id)
         {
-            Login login = db.Logins.Find(id);
-            if (login == null)
-            {
+            Login Login;
+            var obj = db.GetById("Login", id);
+            if (obj != null)
+                Login = (Login)obj;
+            else
                 return NotFound();
-            }
 
-            return Ok(login);
+            return Ok(Login);
         }
 
-        // PUT: api/Logins/5
+        // PUT: api/Login/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(void))]
-        public IHttpActionResult PutLogin(int id, Login login)
+        public IHttpActionResult PutLogin(int id, Login Login)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != login.ID)
+            if (id != Login.ID)
             {
                 return BadRequest();
             }
 
-            db.Entry(login).State = EntityState.Modified;
-
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!LoginExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            var res = db.SetItem("Login", Login.ID, Entities_Functions.GetInsertString(Login));
 
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        // POST: api/Logins
+        // POST: api/Login
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Login))]
-        public IHttpActionResult PostLogin(Login login)
+        public IHttpActionResult PostLogin(Login Login)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            db.Logins.Add(login);
-            db.SaveChanges();
+            var res = db.SetItem("Login", Login.ID, Entities_Functions.GetInsertString(Login));
 
-            return CreatedAtRoute("DefaultApi", new { id = login.ID }, login);
+            return CreatedAtRoute("DefaultApi", new { id = Login.ID }, Login);
         }
 
-        // DELETE: api/Logins/5
+        // DELETE: api/Login/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Login))]
         public IHttpActionResult DeleteLogin(int id)
         {
-            Login login = db.Logins.Find(id);
-            if (login == null)
+            Login Login = (Login)db.GetById("Login", id);
+            if (Login == null)
             {
                 return NotFound();
             }
+            var res = db.Inative("Login", id);
 
-            db.Logins.Remove(login);
-            db.SaveChanges();
-
-            return Ok(login);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
+            return Ok(Login);
         }
 
         private bool LoginExists(int id)
         {
-            return db.Logins.Count(e => e.ID == id) > 0;
+            return db.ContainsId("Login", id);
         }
     }
 }

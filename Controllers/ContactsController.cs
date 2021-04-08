@@ -1,119 +1,96 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
-using api_financial_control.Models;
 using api_financial_control_entitiesLibrary;
+using Microsoft.AspNetCore.Cors;
 
 namespace api_financial_control.Controllers
 {
     public class ContactsController : ApiController
     {
-        private DataBaseContext db = new DataBaseContext();
+        private DataBaseConnection.DataBaseConnection db = new DataBaseConnection.DataBaseConnection();
 
-        // GET: api/Contacts
-        public IQueryable<Contact> GetContacts()
+        // GET: api/Contact
+        [EnableCors("AllowSpecificOrigin")]
+        public IQueryable<Contact> GetContact()
         {
-            return db.Contacts;
+            var list = db.Get("Contact");
+            return list.Cast<Contact>().AsQueryable();
         }
 
-        // GET: api/Contacts/5
+        // GET: api/Contact/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Contact))]
         public IHttpActionResult GetContact(int id)
         {
-            Contact contact = db.Contacts.Find(id);
-            if (contact == null)
-            {
+            Contact Contact;
+            var obj = db.GetById("Contact", id);
+            if (obj != null)
+                Contact = (Contact)obj;
+            else
                 return NotFound();
-            }
 
-            return Ok(contact);
+            return Ok(Contact);
         }
 
-        // PUT: api/Contacts/5
+        // PUT: api/Contact/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(void))]
-        public IHttpActionResult PutContact(int id, Contact contact)
+        public IHttpActionResult PutContact(int id, Contact Contact)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != contact.ID)
+            if (id != Contact.ID)
             {
                 return BadRequest();
             }
 
-            db.Entry(contact).State = EntityState.Modified;
-
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ContactExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            var res = db.SetItem("Contact", Contact.ID, Entities_Functions.GetInsertString(Contact));
 
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        // POST: api/Contacts
+        // POST: api/Contact
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Contact))]
-        public IHttpActionResult PostContact(Contact contact)
+        public IHttpActionResult PostContact(Contact Contact)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            db.Contacts.Add(contact);
-            db.SaveChanges();
+            var res = db.SetItem("Contact", Contact.ID, Entities_Functions.GetInsertString(Contact));
 
-            return CreatedAtRoute("DefaultApi", new { id = contact.ID }, contact);
+            return CreatedAtRoute("DefaultApi", new { id = Contact.ID }, Contact);
         }
 
-        // DELETE: api/Contacts/5
+        // DELETE: api/Contact/5
+        [EnableCors("AllowSpecificOrigin")]
         [ResponseType(typeof(Contact))]
         public IHttpActionResult DeleteContact(int id)
         {
-            Contact contact = db.Contacts.Find(id);
-            if (contact == null)
+            Contact Contact = (Contact)db.GetById("Contact", id);
+            if (Contact == null)
             {
                 return NotFound();
             }
+            var res = db.Inative("Contact", id);
 
-            db.Contacts.Remove(contact);
-            db.SaveChanges();
-
-            return Ok(contact);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
+            return Ok(Contact);
         }
 
         private bool ContactExists(int id)
         {
-            return db.Contacts.Count(e => e.ID == id) > 0;
+            return db.ContainsId("Contact", id);
         }
     }
 }
